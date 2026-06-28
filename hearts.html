@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>愛心</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: linear-gradient(135deg, #1a0010 0%, #2d0020 50%, #1a0010 100%);
+      min-height: 100vh;
+      overflow: hidden;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .hint {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255, 150, 180, 0.5);
+      font-size: 1.2rem;
+      font-family: sans-serif;
+      pointer-events: none;
+      transition: opacity 1s;
+      text-align: center;
+    }
+
+    .heart {
+      position: fixed;
+      pointer-events: none;
+      animation: floatUp var(--dur) ease-out forwards;
+      font-size: var(--size);
+      filter: drop-shadow(0 0 8px var(--color));
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translate(0, 0) scale(0) rotate(0deg);
+        opacity: 1;
+      }
+      20% {
+        transform: translate(var(--dx20), -80px) scale(1.2) rotate(var(--rot20));
+        opacity: 1;
+      }
+      80% {
+        opacity: 0.8;
+      }
+      100% {
+        transform: translate(var(--dxEnd), var(--dyEnd)) scale(0.6) rotate(var(--rotEnd));
+        opacity: 0;
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50%       { transform: translate(-50%, -50%) scale(1.08); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="hint" id="hint">點擊任意處<br>或等待愛心綻放 ♥</div>
+
+<script>
+  const colors = [
+    '#ff4d6d', '#ff758f', '#ff85a1', '#ffa8bc',
+    '#ff006e', '#fb5607', '#ff9ef7', '#c77dff',
+    '#ff4895', '#f72585'
+  ];
+
+  const emojis = ['♥', '❤', '💖', '💗', '💓', '💝', '💕', '🩷'];
+
+  let hintVisible = true;
+
+  function randomBetween(a, b) {
+    return a + Math.random() * (b - a);
+  }
+
+  function spawnHeart(x, y) {
+    const el = document.createElement('div');
+    el.className = 'heart';
+
+    const size = randomBetween(20, 60);
+    const dur  = randomBetween(1.4, 2.8);
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+    const dx20   = randomBetween(-40, 40) + 'px';
+    const dxEnd  = randomBetween(-120, 120) + 'px';
+    const dyEnd  = -randomBetween(200, 400) + 'px';
+    const rot20  = randomBetween(-30, 30) + 'deg';
+    const rotEnd = randomBetween(-60, 60) + 'deg';
+
+    el.style.cssText = `
+      left: ${x}px;
+      top:  ${y}px;
+      --size:   ${size}px;
+      --dur:    ${dur}s;
+      --color:  ${color};
+      --dx20:   ${dx20};
+      --dxEnd:  ${dxEnd};
+      --dyEnd:  ${dyEnd};
+      --rot20:  ${rot20};
+      --rotEnd: ${rotEnd};
+    `;
+
+    el.textContent = emoji;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), dur * 1000);
+  }
+
+  function burst(x, y, count = 8) {
+    for (let i = 0; i < count; i++) {
+      const ox = randomBetween(-20, 20);
+      const oy = randomBetween(-20, 20);
+      setTimeout(() => spawnHeart(x + ox, y + oy), i * 60);
+    }
+  }
+
+  // 點擊觸發
+  document.addEventListener('click', (e) => {
+    if (hintVisible) {
+      document.getElementById('hint').style.opacity = '0';
+      hintVisible = false;
+    }
+    burst(e.clientX, e.clientY, 12);
+  });
+
+  // 自動從底部飛出
+  function autoSpawn() {
+    const x = randomBetween(50, window.innerWidth - 50);
+    const y = window.innerHeight + 10;
+    const count = Math.floor(randomBetween(1, 4));
+    burst(x, y, count);
+    setTimeout(autoSpawn, randomBetween(200, 600));
+  }
+
+  // 開場爆發
+  setTimeout(() => {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => burst(cx, cy, 10), i * 150);
+    }
+  }, 300);
+
+  autoSpawn();
+</script>
+</body>
+</html>
